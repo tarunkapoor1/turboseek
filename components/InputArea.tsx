@@ -19,41 +19,63 @@ const InputArea: FC<TInputAreaProps> = ({
 }) => {
   return (
     <form
-      className="mx-auto flex h-[66px] w-full items-center justify-between rounded-lg border bg-white px-3 shadow-[2px_2px_38px_0px_rgba(0,0,0,0.25),0px_-2px_4px_0px_rgba(0,0,0,0.25)_inset,1px_2px_4px_0px_rgba(0,0,0,0.25)_inset]"
+      className="mx-auto flex h-[66px] w-full items-center justify-between rounded-full border border-saraswati-primary bg-white px-6 shadow-lg transition-shadow hover:shadow-xl"
       onSubmit={(e) => {
         e.preventDefault();
         if (reset) reset();
         handleDisplayResult();
       }}
     >
-      <input
-        type="text"
-        placeholder="Ask anything"
-        className="focus-visible::outline-0 my-1 w-full pl-5 font-light not-italic leading-[normal] text-[#1B1B16]/30 text-black outline-none focus-visible:ring-0 focus-visible:ring-offset-0 sm:text-xl"
-        disabled={disabled}
-        value={promptValue}
-        required
-        onChange={(e) => setPromptValue(e.target.value)}
-      />
+      <div className="flex items-center flex-grow">
+        <svg 
+          xmlns="http://www.w3.org/2000/svg" 
+          fill="none" 
+          viewBox="0 0 24 24" 
+          strokeWidth={1.5} 
+          stroke="currentColor" 
+          className="w-5 h-5 text-saraswati-secondary"
+        >
+          <path 
+            strokeLinecap="round" 
+            strokeLinejoin="round" 
+            d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" 
+          />
+        </svg>
+        <input
+          type="text"
+          placeholder="Ask anything..."
+          className="w-full pl-4 text-lg font-light text-saraswati-text placeholder-saraswati-secondary/50 outline-none"
+          disabled={disabled}
+          value={promptValue}
+          required
+          onChange={(e) => setPromptValue(e.target.value)}
+        />
+      </div>
       <button
         disabled={disabled}
         type="submit"
-        className="relative flex h-[50px] w-[50px] shrink-0 items-center justify-center rounded-[3px] bg-[linear-gradient(154deg,#1B1B16_23.37%,#565646_91.91%)] disabled:pointer-events-none disabled:opacity-75"
+        className="flex h-[40px] w-[40px] items-center justify-center rounded-full bg-saraswati-secondary hover:bg-saraswati-accent transition-colors disabled:pointer-events-none disabled:opacity-75"
       >
-        {disabled && (
-          <div className="absolute inset-0 flex items-center justify-center">
+        {disabled ? (
+          <div className="flex items-center justify-center">
             <TypeAnimation />
           </div>
+        ) : (
+          <svg 
+            xmlns="http://www.w3.org/2000/svg" 
+            fill="none" 
+            viewBox="0 0 24 24" 
+            strokeWidth={2} 
+            stroke="currentColor" 
+            className="w-5 h-5 text-white"
+          >
+            <path 
+              strokeLinecap="round" 
+              strokeLinejoin="round" 
+              d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" 
+            />
+          </svg>
         )}
-
-        <Image
-          unoptimized
-          src={"/img/arrow-narrow-right.svg"}
-          alt="search"
-          width={24}
-          height={24}
-          className={disabled ? "invisible" : ""}
-        />
       </button>
     </form>
   );
