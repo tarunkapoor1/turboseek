@@ -1,18 +1,9 @@
 import { Readability } from "@mozilla/readability";
 import jsdom, { JSDOM } from "jsdom";
 import {
-  TogetherAIStream,
-  TogetherAIStreamPayload,
-} from "@/utils/TogetherAIStream";
-import Together from "together-ai";
-
-const together = new Together({
-  apiKey: process.env["TOGETHER_API_KEY"],
-  baseURL: "https://together.helicone.ai/v1",
-  defaultHeaders: {
-    "Helicone-Auth": `Bearer ${process.env.HELICONE_API_KEY}`,
-  },
-});
+  GroqStream,
+  GroqStreamPayload,
+} from "@/utils/GroqStream";
 
 export const maxDuration = 45;
 
@@ -66,8 +57,8 @@ export async function POST(request: Request) {
     `;
 
   try {
-    const payload: TogetherAIStreamPayload = {
-      model: "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
+    const payload: GroqStreamPayload = {
+      model: "deepseek-r1-distill-llama-70b",
       messages: [
         { role: "system", content: mainAnswerPrompt },
         {
@@ -76,35 +67,45 @@ export async function POST(request: Request) {
         },
       ],
       stream: true,
+      temperature: 0.7,
     };
 
     console.log(
-      "[getAnswer] Fetching answer stream from Together API using text and question",
+      "[getAnswer] Fetching answer stream from Groq API using text and question",
     );
-    const stream = await TogetherAIStream(payload);
-    // TODO: Need to add error handling here, since a non-200 status code doesn't throw.
+    const stream = await GroqStream(payload);
     return new Response(stream, {
       headers: new Headers({
         "Cache-Control": "no-cache",
       }),
     });
   } catch (e) {
-    // If for some reason streaming fails, we can just call it without streaming
+    // If streaming fails, try non-streaming request
     console.log(
       "[getAnswer] Answer stream failed. Try fetching non-stream answer.",
     );
-    let answer = await together.chat.completions.create({
-      model: "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
-      messages: [
-        { role: "system", content: mainAnswerPrompt },
-        {
-          role: "user",
-          content: question,
-        },
-      ],
+    const response = await fetch("https://api.groq.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "deepseek-r1-distill-llama-70b",
+        messages: [
+          { role: "system", content: mainAnswerPrompt },
+          { role: "user", content: question },
+        ],
+        temperature: 0.7,
+      }),
     });
 
-    let parsedAnswer = answer.choices![0].message?.content;
+    if (!response.ok) {
+      throw new Error(`Groq API error: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    const parsedAnswer = data.choices[0].message?.content;
     console.log("Error is: ", e);
     return new Response(parsedAnswer, { status: 202 });
   }
